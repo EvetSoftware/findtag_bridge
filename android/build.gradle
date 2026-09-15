@@ -1,0 +1,56 @@
+group = 'com.findapptag.findtag_bridge'
+version = '0.1.0'
+
+buildscript {
+    ext.kotlin_version = '2.2.20'
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.11.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+// Flutter resolves a plugin's runtime dependencies from the host projects.
+// Register the versioned binary repository for every project so consumers
+// do not need to duplicate this configuration in their Android application.
+rootProject.allprojects {
+    repositories {
+        maven {
+            name = 'findTagJitPack'
+            url = uri('https://jitpack.io')
+            content {
+                includeModule('com.github.EvetSoftware', 'FindTag_Android_SDK')
+            }
+        }
+    }
+}
+
+android {
+    namespace 'com.findapptag.findtag_bridge'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 29
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'com.github.EvetSoftware:FindTag_Android_SDK:1.0.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.0'
+}

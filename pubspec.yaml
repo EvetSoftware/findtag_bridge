@@ -1,0 +1,23 @@
+name: findtag_bridge
+description: Flutter bridge for the official FindTag Android and iOS SDKs.
+version: 0.1.0
+publish_to: none
+homepage: https://github.com/EvetSoftware/findtag_bridge
+repository: https://github.com/EvetSoftware/findtag_bridge
+
+environment:
+  sdk: ^3.11.5
+  flutter: '>=3.38.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.findapptag.findtag_bridge
+        pluginClass: FindTagBridgePlugin
+      ios:
+        pluginClass: FindTagBridgePlugin

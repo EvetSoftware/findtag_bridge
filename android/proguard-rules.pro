@@ -1,0 +1,2 @@
+-keep public class com.mytag.sdk.* { public protected *; }
+-keepattributes Signature,InnerClasses,EnclosingMethod

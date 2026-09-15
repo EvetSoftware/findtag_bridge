@@ -1,0 +1,9 @@
+.dart_tool/
+.DS_Store
+pubspec.lock
+
+android/.gradle/
+android/build/
+
+ios/.symlinks/
+ios/Pods/
