@@ -1,5 +1,5 @@
 group = 'com.findapptag.findtag_bridge'
-version = '0.1.0'
+version = '0.3.0'
 
 buildscript {
     ext.kotlin_version = '2.2.20'
@@ -16,16 +16,28 @@ buildscript {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-// Flutter resolves a plugin's runtime dependencies from the host projects.
-// Register the versioned binary repository for every project so consumers
-// do not need to duplicate this configuration in their Android application.
+// The official FindTag Android SDK is published only as an AAR file in
+// https://github.com/findtag/FindTag_Android_SDK (no Maven artifact). An Ivy
+// repository reads it straight from that repository, pinned to a commit so
+// the binary cannot change underneath a build. The AAR declares no transitive
+// dependencies. Flutter resolves plugin dependencies from the host projects,
+// so the repository is registered for every project.
+def findTagSdkCommit = 'dba5fbf5601426cd7436ef9fa380355153b3023d' // tag V1_260930
+def findTagSdkArtifact = 'sdk-findtag-release_V1_0930'
+
 rootProject.allprojects {
     repositories {
-        maven {
-            name = 'findTagJitPack'
-            url = uri('https://jitpack.io')
+        ivy {
+            name = 'findTagGitHub'
+            url = uri('https://raw.githubusercontent.com/findtag/FindTag_Android_SDK/')
+            patternLayout {
+                artifact '[revision]/libs/[artifact].[ext]'
+            }
+            metadataSources {
+                artifact()
+            }
             content {
-                includeModule('com.github.EvetSoftware', 'FindTag_Android_SDK')
+                includeGroup('com.github.findtag')
             }
         }
     }
@@ -51,6 +63,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.EvetSoftware:FindTag_Android_SDK:1.0.0'
+    implementation "com.github.findtag:${findTagSdkArtifact}:${findTagSdkCommit}@aar"
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.0'
 }

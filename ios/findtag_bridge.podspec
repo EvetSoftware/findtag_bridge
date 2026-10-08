@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'findtag_bridge'
-  s.version          = '0.1.0'
+  s.version          = '0.3.0'
   s.summary          = 'Flutter bridge for the official FindTag SDK.'
   s.description      = 'Flutter bridge used by the FindTag physical-device integration test app.'
   s.homepage         = 'https://github.com/EvetSoftware/FindTag_iOS_SDK'
