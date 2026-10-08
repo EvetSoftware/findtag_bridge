@@ -317,11 +317,36 @@ class FindTagService {
   Future<TagLocationQueryResult> getLocationData(
     String savedTagId,
     TagLocationPreset preset,
-  ) async {
-    final response = (await _invoke<Map<Object?, Object?>>('getLocationData', {
+  ) => _locationData({'savedTagId': savedTagId, 'preset': preset.wireValue});
+
+  /// Özel aralık: [start] ile [end] arasındaki konum kayıtları.
+  ///
+  /// SDK'nın `CUSTOM` sorgusu; iki uç da zorunlu ve [start] [end]'den sonra
+  /// olamaz. Sorgulanabilecek en uzun aralık ve verinin saklanma süresi
+  /// FindTag tarafından belirlenir.
+  Future<TagLocationQueryResult> getLocationDataInRange(
+    String savedTagId,
+    DateTime start,
+    DateTime end,
+  ) {
+    if (start.isAfter(end)) {
+      throw ArgumentError.value(start, 'start', 'end değerinden sonra olamaz');
+    }
+    return _locationData({
       'savedTagId': savedTagId,
-      'preset': preset.wireValue,
-    }))!;
+      'preset': 'custom',
+      'startTimeMs': start.millisecondsSinceEpoch,
+      'endTimeMs': end.millisecondsSinceEpoch,
+    });
+  }
+
+  Future<TagLocationQueryResult> _locationData(
+    Map<String, Object?> arguments,
+  ) async {
+    final response = (await _invoke<Map<Object?, Object?>>(
+      'getLocationData',
+      arguments,
+    ))!;
     final queriedAt = DateTime.fromMillisecondsSinceEpoch(
       (response['queriedAtMs']! as num).toInt(),
     );

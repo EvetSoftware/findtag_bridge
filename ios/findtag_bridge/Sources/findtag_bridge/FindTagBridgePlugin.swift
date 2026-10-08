@@ -181,7 +181,13 @@ public final class FindTagBridgePlugin: NSObject, FlutterPlugin, FlutterStreamHa
         guard let record = try store.record(try stringArgument(call, "savedTagId")) else {
             result(pluginError("deviceNotFound", "Kayıtlı cihaz bulunamadı.")); return
         }
-        sdk.getDataForDeviceKey(record.deviceKey, preset: preset) { [weak self] value, error in
+        let args = try arguments(call)
+        sdk.getDataForDeviceKey(
+            record.deviceKey,
+            preset: preset,
+            startTimeMs: args["startTimeMs"] as? NSNumber,
+            endTimeMs: args["endTimeMs"] as? NSNumber
+        ) { [weak self] value, error in
             guard let self else { return }
             if let error { result(self.flutterError(error)); return }
             result([

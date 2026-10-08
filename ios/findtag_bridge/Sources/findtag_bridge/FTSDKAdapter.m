@@ -131,19 +131,34 @@ static NSDictionary *FTErrorMap(TagError *error) {
 
 - (void)getDataForDeviceKey:(NSString *)deviceKey
                      preset:(NSString *)preset
+                startTimeMs:(NSNumber *)startTimeMs
+                  endTimeMs:(NSNumber *)endTimeMs
                  completion:(FTValueBlock)completion {
     TagDeviceDataPreset selectedPreset = TagDeviceDataPresetLatest;
     if ([preset isEqualToString:@"last1Hour"]) selectedPreset = TagDeviceDataPresetLast1Hour;
     else if ([preset isEqualToString:@"last2Hours"]) selectedPreset = TagDeviceDataPresetLast2Hours;
     else if ([preset isEqualToString:@"last4Hours"]) selectedPreset = TagDeviceDataPresetLast4Hours;
     else if ([preset isEqualToString:@"last6Hours"]) selectedPreset = TagDeviceDataPresetLast6Hours;
+    else if ([preset isEqualToString:@"custom"]) selectedPreset = TagDeviceDataPresetCustom;
     else if (![preset isEqualToString:@"latest"]) {
         completion(nil, @{@"code": @"invalidArgument", @"message": @"Desteklenmeyen konum aralığı."});
         return;
     }
+    // SDK kuralı: özel aralıkta iki uç da zorunlu ve başlangıç bitişten sonra
+    // olamaz; hazır aralıklar uç taşımaz.
+    BOOL custom = selectedPreset == TagDeviceDataPresetCustom;
+    if (custom && (startTimeMs == nil || endTimeMs == nil ||
+                   startTimeMs.longLongValue > endTimeMs.longLongValue)) {
+        completion(nil, @{@"code": @"invalidArgument",
+                          @"message": @"Özel aralık için geçerli başlangıç ve bitiş zamanı gerekir."});
+        return;
+    }
     TagDeviceKey *key = [[TagDeviceKey alloc] initWithDeviceKey:deviceKey];
     TagDeviceDataQuery *query = [[TagDeviceDataQuery alloc]
-        initWithDeviceKey:key preset:selectedPreset startTimeMs:nil endTimeMs:nil];
+        initWithDeviceKey:key
+                   preset:selectedPreset
+              startTimeMs:custom ? startTimeMs : nil
+                endTimeMs:custom ? endTimeMs : nil];
     [TagSdk getDeviceData:query completion:^(NSArray<TagDeviceData *> *rows, TagError *error) {
         if (error != nil) { completion(nil, FTErrorMap(error)); return; }
         NSMutableArray *mapped = [NSMutableArray array];

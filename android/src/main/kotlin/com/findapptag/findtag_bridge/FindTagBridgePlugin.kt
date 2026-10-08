@@ -123,6 +123,8 @@ class FindTagBridgePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     requiredString(call, "savedTagId"),
                     locationPreset(requiredString(call, "preset")),
                     result,
+                    call.argument<Number>("startTimeMs")?.toLong(),
+                    call.argument<Number>("endTimeMs")?.toLong(),
                 )
                 "findDevice" -> findDevice(requiredString(call, "scanId"), result)
                 "exportLogs" -> exportLogs(result)
@@ -349,6 +351,7 @@ class FindTagBridgePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         "last2Hours" -> TagDeviceDataPreset.LAST_2_HOURS
         "last4Hours" -> TagDeviceDataPreset.LAST_4_HOURS
         "last6Hours" -> TagDeviceDataPreset.LAST_6_HOURS
+        "custom" -> TagDeviceDataPreset.CUSTOM
         else -> throw IllegalArgumentException("Desteklenmeyen konum aralığı: $value")
     }
 
@@ -356,14 +359,26 @@ class FindTagBridgePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         savedTagId: String,
         preset: TagDeviceDataPreset,
         result: MethodChannel.Result,
+        startTimeMs: Long? = null,
+        endTimeMs: Long? = null,
     ) {
         requireInitialized(result) ?: return
+        // SDK kuralı: özel aralıkta iki uç da zorunlu ve başlangıç bitişten sonra
+        // olamaz; hazır aralıklar uç taşımaz.
+        val custom = preset == TagDeviceDataPreset.CUSTOM
+        if (custom && (startTimeMs == null || endTimeMs == null || startTimeMs > endTimeMs)) return result.error(
+            "invalidArgument", "Özel aralık için geçerli başlangıç ve bitiş zamanı gerekir.", null)
         if (!credentialsReady()) return result.error(
             "openApiCredentialMissing", "Önce Test API Ayarları ekranından API bilgilerini kaydedin.", null)
         val record = store.record(savedTagId)
             ?: return result.error("deviceNotFound", "Kayıtlı cihaz bulunamadı.", null)
         TagSdk.getDeviceData(
-            TagDeviceDataQuery(TagDeviceKey(record.getString("deviceKey")), preset),
+            TagDeviceDataQuery(
+                TagDeviceKey(record.getString("deviceKey")),
+                preset,
+                if (custom) startTimeMs else null,
+                if (custom) endTimeMs else null,
+            ),
             object : TagCallback<List<TagDeviceData>> {
                 override fun onSuccess(data: List<TagDeviceData>) {
                     result.success(mapOf(

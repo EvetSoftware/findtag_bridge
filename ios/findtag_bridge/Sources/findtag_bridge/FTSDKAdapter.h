@@ -25,6 +25,8 @@ typedef void (^FTValueBlock)(id _Nullable value, NSDictionary * _Nullable error)
 - (void)findScanId:(NSString *)scanId completion:(FTValueBlock)completion;
 - (void)getDataForDeviceKey:(NSString *)deviceKey
                      preset:(NSString *)preset
+                startTimeMs:(nullable NSNumber *)startTimeMs
+                  endTimeMs:(nullable NSNumber *)endTimeMs
                  completion:(FTValueBlock)completion;
 - (void)exportLogsWithCompletion:(FTValueBlock)completion;
 - (void)releaseSdk;
